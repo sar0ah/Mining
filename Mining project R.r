@@ -111,94 +111,17 @@ zomato$rate <- ifelse(zomato$rate <= 2, "Bad",
 
 head(zomato)
 
-# ensure the results are repeatable
-set.seed(7)
-
-# load the library
-
-if (!require(caret)) {
-  install.packages("caret")
-}
-if (!require(glmnet)) {
-  install.packages("glmnet")
-}
-
-if (!require(e1071)) {
-  install.packages("e1071")
-}
-if (!require(randomForest)) {
-  install.packages("randomForest")
-}
-library(randomForest)
-library(caret)
-library(glmnet)
-library(e1071)
-
-
-# load the data
-head(zomato)
-# define the control using a random forest selection function
-control <- rfeControl(functions=rfFuncs, method="cv", number=10)
-# run the RFE algorithm
-results <- rfe(zomato[,11:11], zomato[,12], sizes=c(1:11), rfeControl=control)
-# summarize the results
-print(results)
-# list the chosen features
-predictors(results)
-# plot the results
-plot(results, type=c("g", "o"))
-
-
-# Load the dataset
-head(zomato)
-
-# Convert the class label to a factor
-zomato$online_order <- as.factor(zomato$online_order)
-
-# Separate the predictors and the class label
-predictors <- zomato[, -12]  # Excluding the class label (diabetes)
-class_label <- zomato$`online_order `
-
-# Train a Random Forest model
-model <- randomForest(predictors, class_label, importance = TRUE)
-
-# Get the variable importance
-importance <- importance(model)
-
-# Rank the features by importance
-ranked_features <- sort(importance[, "MeanDecreaseGini"], decreasing = TRUE)
-
-# Print the ranked features
-print(ranked_features)
-# Rank the features by importance
-ranked_features <- sort(importance$MeanDecreaseGini, decreasing = TRUE)
-
-# Print the ranked features
-print(ranked_features)
+newDataset <- read.csv("zomato.csv")
+head(newDataset)
+tb1 <- table(newDataset$online_order, newDataset$numofratings)
+tb1
+tb2 <- table(newDataset$online_order,newDataset$avgCost)
+tb2
+tb3 <- table(newDataset$online_order,newDataset$rate)
+tb3
+chisq.test(tb1)
+chisq.test(tb2)
+chisq.test(tb3)
 
 
 
-
-# Load the data
-head(zomato)
-
-# Define the control parameters for RFE using random forest selection function
-control <- rfeControl(functions = rfFuncs, method = "cv", number = 10)
-
-# Extract the predictor variables from zomato
-predictors <- zomato[, -ncol(zomato)]
-
-# Convert the outcome variable to a factor
-outcome <- as.factor(zomato$online_order)
-
-# Run the RFE algorithm
-results <- rfe(predictors, outcome, sizes = 1:ncol(zomato), rfeControl = control)
-
-# Summarize the results
-print(results)
-
-# List the chosen features selected by RFE
-predictors(results)
-
-# Plot the results
-plot(results, type = c("g", "o"))
