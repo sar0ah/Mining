@@ -1,0 +1,389 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+zomato <- read.csv("zomato.csv")
+
+summary(zomato)
+
+sum(is.na(zomato))
+
+summary(zomato$rate)
+
+summary(zomato$rate)
+
+
+summary(zomato$avgCost)
+
+
+boxplot.stats(zomato$rate)$out
+
+
+boxplot.stats(zomato$avgCost)$out
+
+
+boxplot.stats(zomato$numofratings)$out
+
+
+boxplot(zomato$rate)
+
+
+boxplot(zomato$numofratings)
+
+
+boxplot(zomato$avgCost)
+
+
+plot(zomato$rate,zomato$avgCost)
+
+
+hist(zomato$avgCost)
+
+onlineOrder <- table(zomato$online_order)
+pie(onlineOrder)
+
+summary (zomato$rate)
+
+
+summary(zomato$numofratings)
+
+
+summary(zomato$avgCost)
+
+
+dim(zomato)
+
+
+zomato =na.omit(zomato)
+
+
+dim(zomato)
+
+
+sum(is.na(zomato))
+
+
+library(outliers)
+
+OutN = outlier(zomato$numofratings, logical =TRUE)
+
+
+sum(OutN)
+
+
+Find_outlier = which(OutN ==TRUE, arr.ind = TRUE)
+
+
+OutN
+
+Find_outlier
+
+
+zomato= zomato[-Find_outlier,]
+
+
+OutAv = outlier(zomato$avgCost, logical =TRUE)
+sum(OutAv)
+
+
+
+Find_outlier = which(OutAv ==TRUE, arr.ind = TRUE)
+OutAv
+
+
+Find_outlier
+
+zomato= zomato[-Find_outlier,]
+
+head(zomato)
+
+zomato$tablebooking=factor(zomato$tablebooking , levels =c("No","Yes"), labels = c(0,1))
+zomato$online_order=factor(zomato$online_order , levels =c("No","Yes"), labels = c(0,1))
+
+
+normalize <- function(x){return ((x-min(x))/(max(x)-min(x)))}
+
+zomato$numofratings<- normalize(zomato$numofratings)
+zomato$avgCost<- normalize(zomato$avgCost)
+
+zomato$rate <- ifelse(zomato$rate <= 2, "Bad",
+                  ifelse(zomato$rate <=3, "Okay",
+                      ifelse(zomato$rate <=4, "Good",
+                             ifelse(zomato$rate <=5, "Great",0 ))))
+
+
+head(zomato)
+
+
+
+
+
+#Features selection: Recursive Feature Elimination using Package Randomforst is the feature selection method we'll use to streamline our predictive model. This method is commonly used to determine which input variables are most important for predicting our focal variable, in this case, the "rate." In addition, the varImp function will be utilized to assess the importance of different variables in our investigation. 
+
+
+# ensure the results are repeatable
+set.seed(7)
+# load the library
+install.packages("mlbench")
+library(mlbench)
+library(caret)
+library(randomForest)
+# Convert the class label to a factor
+
+zomato$rate <- as.factor(zomato$rate )
+
+
+
+# Separate the predictors and the class label
+
+predictors <- zomato[, -5]  # Excluding the class label (satisfaction)
+class_label <- zomato$rate 
+
+
+# Train a Random Forest model
+
+model <- randomForest(predictors, class_label, importance = TRUE)
+
+
+
+# Get the variable importance
+
+importance <- importance(model)
+
+ranked_features <- sort(importance[, "MeanDecreaseGini"], decreasing = TRUE)
+
+
+
+# Print the ranked features
+print(ranked_features)
+
+barplot(ranked_features, horiz = TRUE, col = c("lightblue2"), las = 1, main = "Features selection")
+
+
+#Balance or imbalance ?The provided code snippet in R performs a process known as data upscaling or oversampling. This technique is commonly used to address imbalances within categorical classes by generating additional instances of the underrepresented class.
+
+#Initially, the 'rate' column is converted into a factor, which is a typical step when working with categorical data. Then, the upSample function is applied to the dataset, likely increasing the number of instances in the class with fewer observations, hence balancing the distribution.
+
+#Following this, a plot is attempted for the 'rate' variable to visualize its distribution after the oversampling process. However, plotting a categorical variable directly might not provide a clear representation, and alternative plotting methods could be more suitable, such as a bar plot showcasing the frequencies of each rate category.
+
+#Moreover, the code checks the proportion of each category within the 'rate' variable after the upsampling process. This enables monitoring the balance or imbalance among the different categories of the 'rate' variable following the oversampling adjustment.
+
+#Zomato data set is Balance 
+
+
+#The code snippet is essentially about converting categorical data, upsampling to balance the class distribution, plotting the updated distribution, and assessing the proportions of categories post-upsampling to ensure a balanced representation in the dataset. This process aims to rectify any imbalances in class representation, typically crucial for improving model performance, especially in classification tasks within machine learning.
+
+library(ROSE)
+# upscaling the data
+
+zomato$rate <- as.factor(zomato$rate)
+zomato<-upSample(zomato[,-5],zomato$rate, yname="rate")
+plot(zomato$rate)
+
+# checking the number of stroke/ non-stroke observations
+prop.table(table(zomato$rate))
+title(main="Data after oversampling", xlab="rate", ylab="observations")
+
+ 
+
+
+
+# Make sure you have the required libraries installed
+install.packages("rpart")
+install.packages("rpart.plot")
+
+# Load necessary libraries
+library(rpart)
+library(rpart.plot)
+
+
+#Informaion gain 
+#partioning the data into (60 % training,40% testing)
+  
+  
+set.seed(123)
+ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.60, 0.40))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+
+# Assuming zomato_ctree is generated using rpart
+# Example of fitting an rpart model
+zomato_ctree <- rpart(rate ~ numofratings + avgCost, data = trainData,parm=list(split="information"))
+
+# Visualize the decision tree using rpart.plot
+rpart.plot(zomato_ctree)
+
+
+
+
+
+
+## Make predictions on the test set
+predictions <- predict(zomato_ctree, testData, type = "class")  # Assuming it's a classification problem
+
+# Confusion matrix
+conf_matrix <- table(predictions, testData$rate)
+
+# Calculate evaluation metrics
+TP <- conf_matrix[2, 2]  # True Positives
+TN <- conf_matrix[1, 1]  # True Negatives
+FP <- conf_matrix[2, 1]  # False Positives
+FN <- conf_matrix[1, 2]  # False Negatives
+
+# Calculate accuracy
+accuracy <- (TP + TN) / sum(conf_matrix)
+
+# Calculate precision
+precision <- TP / (TP + FP)
+
+# Calculate sensitivity (True Positive Rate or Recall)
+sensitivity <- TP / (TP + FN)
+
+# Calculate specificity (True Negative Rate)
+specificity <- TN / (TN + FP)
+
+# Output the evaluation metrics
+print(paste("Accuracy:", accuracy))
+print(paste("Precision:", precision))
+print(paste("Sensitivity (Recall):", sensitivity))
+print(paste("Specificity:",specificity))
+
+
+#2-----------------------------------------------------#
+
+
+
+# Load necessary libraries if not already installed
+install.packages("rpart")
+install.packages("rpart.plot")
+
+# Load necessary libraries
+library(rpart)
+library(rpart.plot)
+
+ 
+#partioning the data into (75% training,25% testing)
+  
+ ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.75, 0.25))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+
+# Assuming zomato_ctree is generated using rpart
+# Example of fitting an rpart model
+zomato_ctree <- rpart(rate ~ numofratings + avgCost, data = trainData,parm=list(split="information"))
+
+# Visualize the decision tree using rpart.plot
+rpart.plot(zomato_ctree)
+
+# Make predictions on the test set
+predictions <- predict(zomato_ctree, testData, type = "class")  # Assuming it's a classification problem
+
+# Confusion matrix
+conf_matrix <- table(predictions, testData$rate)
+
+# Calculate evaluation metrics
+TP <- conf_matrix[2, 2]  # True Positives
+TN <- conf_matrix[1, 1]  # True Negatives
+FP <- conf_matrix[2, 1]  # False Positives
+FN <- conf_matrix[1, 2]  # False Negatives
+
+# Calculate accuracy
+accuracy <- (TP + TN) / sum(conf_matrix)
+
+# Calculate precision
+precision <- TP / (TP + FP)
+
+# Calculate sensitivity (True Positive Rate or Recall)
+sensitivity <- TP / (TP + FN)
+
+# Calculate specificity (True Negative Rate)
+specificity <- TN / (TN + FP)
+
+# Output the evaluation metrics
+print(paste("Accuracy:", accuracy))
+print(paste("Precision:", precision))
+print(paste("Sensitivity (Recall):", sensitivity))
+print(paste("Specificity:",specificity))
+
+#3---------------------------------------#
+
+# Make sure you have the required libraries installed
+install.packages("rpart")
+install.packages("rpart.plot")
+
+# Load necessary libraries
+library(rpart)
+library(rpart.plot)
+
+
+
+#partioning the data into (80% training -20% testing) 
+  
+ ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.80, 0.20))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+
+# Assuming zomato_ctree is generated using rpart
+# Example of fitting an rpart model
+zomato_ctree <- rpart(rate ~ numofratings + avgCost, data = trainData,parm=list(split="information"))
+
+# Visualize the decision tree using rpart.plot
+rpart.plot(zomato_ctree)
+
+# Make predictions on the test set
+predictions <- predict(zomato_ctree, testData, type = "class")  # Assuming it's a classification problem
+ # Confusion matrix
+conf_matrix <- table(predictions, testData$rate)
+
+# Calculate evaluation metrics
+TP <- conf_matrix[2, 2]  # True Positives
+TN <- conf_matrix[1, 1]  # True Negatives
+FP <- conf_matrix[2, 1]  # False Positives
+FN <- conf_matrix[1, 2]  # False Negatives
+
+# Calculate accuracy
+accuracy <- (TP + TN) / sum(conf_matrix)
+
+# Calculate precision
+precision <- TP / (TP + FP)
+
+# Calculate sensitivity (True Positive Rate or Recall)
+sensitivity <- TP / (TP + FN)
+
+# Calculate specificity (True Negative Rate)
+specificity <- TN / (TN + FP)
+
+# Output the evaluation metrics
+print(paste("Accuracy:", accuracy))
+print(paste("Precision:", precision))
+print(paste("Sensitivity (Recall):", sensitivity))
+print(paste("Specificity:",specificity))
+#------------------------------#
