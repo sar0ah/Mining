@@ -3,9 +3,42 @@ title: "ZOMATO"
 output: html_notebook
 ---
 
+# 1-Problem:
+
+in our project we chose the dataset of the restaurants in Zomato which is an Indian multinational restaurant aggregator and food delivery company. This dataset contains information about various restaurants listed on the platform, including their location, cuisine type, ratings, and other essential attributes.we will study and analyze the restaurants data that will help us identify the preferred cost range and the most likable restaurant type and cuisines type that leads into high ratings to help people who are interested in putting their restaurants on the platform by predicting the ratings of new restaurants on the platform.
+
+# 2-Data Mining Task:
+
+We want to solve this problem by classification data mining task, to predict the highest ratings based on restaurant type, average cost of two people, and the cuisine's type, by choosing rating as class label.
+
+# 3- Data:
+
+We choose this data from Kaggle website(<https://www.kaggle.com/datasets/abhijitdahatonde/zomato-restaurants-dataset>) This dataset provides us with information about different type of restaurant and there ratings in food application called Zomato, it consists the following attributes:
+
+Number of attributes:12
+
+Number of objects:7104
+
+| Attribute         | Description                                                                                                                                   | Type                | Possible values                                               |
+|------------------|------------------|-------------------|------------------|
+| \#                | Index                                                                                                                                         | Numeric-Ratio       | [0-7014]                                                      |
+| Restauran name    | Name of restaurant that application offered by the application                                                                                | Nominal             | #FeelTheROLL #L-81 Cafe #refuel'\@ Biryani Central'\@ The Bbq |
+| Restaurant type   | restaurant type includes the type of the restaurant and if it has delivery or takeaway                                                        | Nominal             | Quick Bites ,Casual Dining, Cafe, Delivery Takeaway           |
+| Rate              | Express your opinion or assessme                                                                                                              | Numeric- Interval   | [1.8-4.9]                                                     |
+| Number of ratings | refers the count of how many times a restaurant or product has been rated or reviewed by customer or user                                     | Numeric- Interval   | [1-16,300]                                                    |
+| Avg cost          | Total cost of order                                                                                                                           | Numeric- Interval   | [40-6000]                                                     |
+| Online order      | This means that customers have the option to place their food orders through the restaurant's website or a dedicated online ordering platform | Binary (Asymmetric) | 1(Yes),0(No)                                                  |
+| Teble booking     | This refers to the process of reserving a table at a restaurant in advance                                                                    | Binary (Asymmetric) | 1(Yes),0(No)                                                  |
+| Cuisines type     | This represents the style or category of food and dishes that a restaurant specializes in or offers                                           | Nominal             | North Indian ,Chinese ,North Indian,Fast Food                 |
+
+Type Markdown and LaTeX: 𝛼2Type Markdown and LaTeX: 𝛼2
+
+## Missing value
+
 ```{r}
 zomato <- read.csv("zomato.csv")
 ```
+
 ```{r}
 summary(zomato)
 ```
@@ -13,24 +46,31 @@ summary(zomato)
 ```{r}
 head(zomato)
 ```
+
 ```{r}
 print(zomato)
 ```
+
 ```{r}
 sum(is.na(zomato))
 ```
+
 ```{r}
 summary(zomato$rate)
 
 ```
+
 ```{r}
 summary(zomato$numofratings)
 
 ```
+
 ```{r}
 summary(zomato$avgCost)
 
 ```
+
+## Boxplot
 
 ```{r}
 boxplot.stats(zomato$rate)$out
@@ -47,20 +87,34 @@ boxplot.stats(zomato$numofratings)$out
 
 ```
 
+####description Rating depend in the reviewer's preferences, these ratings are subjective and can change over time, by this boxplot we can determine the outliers which are few.
+
 ```{r}
 boxplot(zomato$rate)
 
 ```
+
+#### description:
+
+The number of rating boxplot shows that value are close and there hug verity of numbers and a lot of ouliers.
 
 ```{r}
 boxplot(zomato$numofratings)
 
 ```
 
+#### description:
+
+the avrage cost of two people boxpot illustrates that there is few outlairs above 1000
+
 ```{r}
 boxplot(zomato$avgCost)
 
 ```
+
+#### description:
+
+scatterplot visualiz the relationship between two variables and identifying patterns or trends in the data, in this scatterplot we can see that
 
 ```{r}
 plot(zomato$rate,zomato$avgCost)
@@ -76,6 +130,8 @@ onlineOrder <- table(zomato$online_order)
 pie(onlineOrder)
 ```
 
+## Statistical Measures
+
 ```{r}
 summary (zomato$rate)
 
@@ -90,6 +146,8 @@ summary(zomato$numofratings)
 summary(zomato$avgCost)
 
 ```
+
+### Check for missing value:
 
 ```{r}
 dim(zomato)
@@ -111,38 +169,62 @@ sum(is.na(zomato))
 
 ```
 
+### Description:
+
+Missing or null values can significantly impact the effectiveness of a dataset and the quality of insights that can be derived from it. Therefore, we conducted an examination of our data to identify and eliminate any rows containing missing or null values. This process was undertaken to enhance the overall efficiency and reliability of our dataset, ensuring more accurate analysis and valuable information extraction in subsequent steps.
+
+## Detecting and removing the outliers
+
+### Detecting the outliers:
+
+Initially, we detected any unusual data points in the numerical attributes. Subsequently, we removed the rows containing these outliers in order to create a more precise dataset, which would ultimately enhance the accuracy of our later results.
+
 ```{r}
 library(outliers)
 ```
+
+Detect outliers in the 'numofratings' column of the 'zomato' dataset.
 
 ```{r}
 OutN = outlier(zomato$numofratings, logical =TRUE)
 
 ```
 
+Sum the number of outliers detected.
+
 ```{r}
 sum(OutN)
 
 ```
+
+Find the indices of the outliers in the 'numofratings' column.
 
 ```{r}
 Find_outlier = which(OutN ==TRUE, arr.ind = TRUE)
 
 ```
 
+Display the logical vector indicating outliers.
+
 ```{r}
 OutN
 ```
+
+Display the indices of the outliers.
 
 ```{r}
 Find_outlier
 
 ```
 
+#### Remove rows with outliers from the 'zomato' dataset.
+
 ```{r}
 zomato= zomato[-Find_outlier,]
 
 ```
+
+We replicated the procedures outlined in the previous code but with the column avgCost.
 
 ```{r}
 OutAv = outlier(zomato$avgCost, logical =TRUE)
@@ -164,10 +246,16 @@ Find_outlier
 zomato= zomato[-Find_outlier,]
 ```
 
+## Features selection:
+
+ensure the results are repeatable
+
 ```{r}
 set.seed(7)
 
 ```
+
+load the library
 
 ```{r}
 library(mlbench)
@@ -176,6 +264,8 @@ library(caret)
 library(randomForest)
 
 ```
+
+load the data
 
 ```{r}
 zomato$rate <- as.factor(zomato$rate )
@@ -229,6 +319,8 @@ predictors(results)
 plot(results, type=c("g", "o"))
 ```
 
+### balance
+
 ```{r}
 library(ROSE)
 ```
@@ -248,7 +340,124 @@ prop.table(table(zomato$rate))
 title(main="Data after oversampling", xlab="rate", ylab="observations")
 ```
 
+## Clustring
+
+#### numeric data and scaling
+
 ```{r}
+numeric_data <- zomato[sapply(zomato, is.numeric)]
+colMeans(numeric_data, na.rm = TRUE)
+
+numeric_data <- scale(numeric_data)
+```
+
+```{r}
+set.seed(8953)
+library(ggplot2)
+library(factoextra)
+
+
+```
+
+```{r}
+k2<- kmeans(numeric_data,centers = 2, nstart = 20)
+str(k2)
+fviz_cluster(k2,data = numeric_data)
+
+```
+
+```{r}
+k5<- kmeans(numeric_data,centers = 5, nstart = 20)
+str(k5)
+fviz_cluster(k5,data = numeric_data)
+```
+
+```{r}
+k8<- kmeans(numeric_data,centers = 8, nstart = 20)
+str(k8)
+fviz_cluster(k8,data = numeric_data)
+
+```
+
+```{r}
+##elbow
+wssplot<- function (data, nc=15 ,seed=1234)
+{
+  wss<-(nrow(data)-1)*sum(apply(data,2,var))
+  for(i in 2:nc){
+    set.seed(seed)
+    wss[i] <- sum(kmeans(data,centers = i)$withinss)}
+  plot(1:nc,wss, type="b", xlab="number of clusters", ylab="within groups sum of squares")
+}
+
+wssplot(numeric_data)
+```
+
+```{r}
+fviz_nbclust(numeric_data, # data
+             kmeans, # clustering algorithm
+             method = "silhouette") # silhouette
+```
+
+```{r}
+fviz_nbclust(numeric_data, # data  
+             kmeans, # clustering algorithm 
+             nstart = 25, # if centers is a number, how many random sets should be chosen?(default is 25)
+             iter.max = 200, # the maximum number of iterations allowed.
+             method = "wss") # elbow method
+
+
+```
+
+```{r}
+
+cluster_assignments <- c(k5$cluster)
+ground_truth_labels <- c(zomato$rate)
+data <- data.frame(cluster = cluster_assignments, label = ground_truth_labels)
+
+
+# Function to calculate BCubed precision and recall
+calculate_bcubed_metrics <- function(data) {
+  n <- nrow(data)
+  precision_sum <- 0
+  recall_sum <- 0
+  
+  for (i in 1:n) {
+    cluster <- data$cluster[i]
+    label <- data$label[i]
+    
+    # Count the number of items from the same category within the same cluster
+    same_category_same_cluster <- sum(data$label[data$cluster == cluster] == label)
+    
+    # Count the total number of items in the same cluster
+    total_same_cluster <- sum(data$cluster == cluster)
+    
+    # Count the total number of items with the same category
+    total_same_category <- sum(data$label == label)
+    
+    # Calculate precision and recall for the current item and add them to the sums
+    precision_sum <- precision_sum + same_category_same_cluster /total_same_cluster
+    recall_sum <- recall_sum + same_category_same_cluster / total_same_category
+  }
+  
+  # Calculate average precision and recall
+  precision <- precision_sum / n
+  recall <- recall_sum / n
+  
+  return(list(precision = precision, recall = recall))
+}
+
+# Calculate BCubed precision and recall
+metrics <- calculate_bcubed_metrics(data)
+
+# Extract precision and recall from the metrics
+precision <- metrics$precision
+recall <- metrics$recall
+
+# Print the results
+cat("BCubed Precision:", precision, "\n")
+cat("BCubed Recall:", recall, "\n")
+
 
 ```
 
@@ -311,40 +520,3 @@ title(main="Data after oversampling", xlab="rate", ylab="observations")
 ```{r}
 
 ```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
