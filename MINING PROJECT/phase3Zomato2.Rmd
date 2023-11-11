@@ -1,0 +1,600 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+
+
+
+
+
+
+```{r}
+#1-Problem:
+#in our project we chose the dataset of the restaurants in Zomato which is an Indian multinational restaurant aggregator and food delivery company. This dataset contains information about various restaurants listed on the platform, including their location, cuisine type, ratings, and other essential attributes.we will study and analyze the restaurants data that will help us identify the preferred cost range and the most likable restaurant type and cuisines type that leads into high ratings to help people who are interested in putting their restaurants on the platform by predicting the ratings of new restaurants on the platform.
+ 
+```
+
+ 
+```{r}
+#2-Data Mining Task:
+#We want to solve this problem by classification data mining task, to predict the highest ratings based on restaurant type, average cost of two people, and the cuisine’s type, by choosing rating as class label.
+```
+
+
+
+
+
+Missing value
+
+
+```{r}
+
+zomato <- read.csv("zomato.csv")
+
+summary(zomato)
+
+sum(is.na(zomato))
+
+summary(zomato$rate)
+
+summary(zomato$rate)
+
+
+summary(zomato$avgCost)
+
+
+```
+
+BoxBlot
+```{r}
+boxplot.stats(zomato$rate)$out
+
+
+ 
+
+```
+
+
+```{r}
+boxplot.stats(zomato$avgCost)$out
+
+
+ 
+
+```
+
+
+```{r}
+boxplot.stats(zomato$numofratings)$out
+
+
+ 
+```
+
+
+```{r}
+boxplot(zomato$rate)
+
+
+ 
+```
+
+
+```{r}
+boxplot(zomato$numofratings)
+
+
+ 
+```
+
+
+```{r}
+boxplot(zomato$avgCost)
+
+
+ 
+```
+
+
+```{r}
+plot(zomato$rate,zomato$avgCost)
+
+
+
+```
+
+
+```{r}
+hist(zomato$avgCost)
+
+```
+
+
+```{r}
+onlineOrder <- table(zomato$online_order)
+pie(onlineOrder)
+```
+
+The statistical measures in R, such as mean, standard deviation, median, and others, are primarily applied to numeric data. These measures help in summarizing, describing, and understanding the properties and characteristics of numerical data. When applied to numeric data, they provide valuable insights and descriptive statistics that aid in understanding the distribution, central tendency, variability, and other important characteristics of the dataset.
+
+Numeric statistical measures in R are specifically designed to work with numerical data to derive insights and statistical summaries.
+
+```{r}
+summary (zomato$rate)
+
+
+summary(zomato$numofratings)
+
+
+summary(zomato$avgCost)
+
+```
+
+
+
+
+Data Preprocessing:
+Description:
+Missing or null values can significantly impact the effectiveness of a dataset and the quality of insights that can be derived from it. Therefore, we conducted an examination of our data to identify and eliminate any rows containing missing or null values. This process was undertaken to enhance the overall efficiency and reliability of our dataset, ensuring more accurate analysis and valuable information extraction in subsequent steps.
+```{r}
+dim(zomato)
+
+
+zomato =na.omit(zomato)
+
+
+dim(zomato)
+
+
+sum(is.na(zomato))
+
+
+```
+
+
+```{r}
+library(outliers)
+
+OutN = outlier(zomato$numofratings, logical =TRUE)
+
+
+sum(OutN)
+
+
+Find_outlier = which(OutN ==TRUE, arr.ind = TRUE)
+
+
+OutN
+
+Find_outlier
+
+
+zomato= zomato[-Find_outlier,]
+
+
+OutAv = outlier(zomato$avgCost, logical =TRUE)
+sum(OutAv)
+
+
+
+Find_outlier = which(OutAv ==TRUE, arr.ind = TRUE)
+OutAv
+
+
+Find_outlier
+
+zomato= zomato[-Find_outlier,]
+
+head(zomato)
+
+
+```
+
+
+```{r}
+zomato$tablebooking=factor(zomato$tablebooking , levels =c("No","Yes"), labels = c(0,1))
+zomato$online_order=factor(zomato$online_order , levels =c("No","Yes"), labels = c(0,1))
+
+
+normalize <- function(x){return ((x-min(x))/(max(x)-min(x)))}
+
+zomato$numofratings<- normalize(zomato$numofratings)
+zomato$avgCost<- normalize(zomato$avgCost)
+
+zomato$rate <- ifelse(zomato$rate <= 2, "Bad",
+                  ifelse(zomato$rate <=3, "Okay",
+                      ifelse(zomato$rate <=4, "Good",
+                             ifelse(zomato$rate <=5, "Great",0 ))))
+
+
+head(zomato)
+```
+
+
+Features selection: Recursive Feature Elimination using Package Randomforst is the feature selection method we'll use to streamline our predictive model. This method is commonly used to determine which input variables are most important for predicting our focal variable, in this case, the "rate." In addition, the varImp function will be utilized to assess the importance of different variables in our investigation. 
+
+
+ 
+
+ 
+
+
+
+```{r}
+# ensure the results are repeatable
+set.seed(7)
+# load the library
+install.packages("mlbench")
+library(mlbench)
+library(caret)
+library(randomForest)
+# Convert the class label to a factor
+
+zomato$rate <- as.factor(zomato$rate )
+
+
+
+# Separate the predictors and the class label
+
+predictors <- zomato[, -5]  # Excluding the class label (satisfaction)
+class_label <- zomato$rate 
+
+
+# Train a Random Forest model
+
+model <- randomForest(predictors, class_label, importance = TRUE)
+
+
+
+# Get the variable importance
+
+importance <- importance(model)
+
+ranked_features <- sort(importance[, "MeanDecreaseGini"], decreasing = TRUE)
+
+
+
+# Print the ranked features
+print(ranked_features)
+
+barplot(ranked_features, horiz = TRUE, col = c("lightblue2"), las = 1, main = "Features selection")
+
+```
+
+Balance or imbalance ?The provided code snippet in R performs a process known as data upscaling or oversampling. This technique is commonly used to address imbalances within categorical classes by generating additional instances of the underrepresented class.
+
+
+
+Zomato data set is Balance 
+
+```{r}
+library(ROSE)
+# upscaling the data
+
+zomato$rate <- as.factor(zomato$rate)
+zomato<-upSample(zomato[,-5],zomato$rate, yname="rate")
+plot(zomato$rate)
+
+# checking the number of stroke/ non-stroke observations
+prop.table(table(zomato$rate))
+title(main="Data after oversampling", xlab="rate", ylab="observations")
+
+ 
+
+
+
+```
+
+
+
+  Information gain is a concept used in decision tree algorithms to choose the best attributes for splitting data.
+  It quantifies how much a feature reduces uncertainty or disorder in the dataset.
+ Features with higher information gain are preferred as they provide more helpful insights when making decisions in the tree, improving the accuracy of the model.
+
+  We employed both supervised and unsupervised learning methodologies on our dataset by leveraging classification and clustering techniques.
+  For classification, we utilized a decision tree—a recursive algorithm generating a tree structure with leaf nodes that represent final decisions.
+  Our model is geared towards predicting the class label ('cardio'), categorized into three classes: 'Good,' 'Great,' and 'Bad.'
+  The prediction is based on the remaining attributes ('numRatin' and 'avgCost').
+ This technique involved the following steps:
+
+ Data Splitting:
+   - Dividing the dataset into two distinct sets:
+      - *Training dataset*: Employed for constructing the decision tree.
+       - *Testing dataset*: Utilized to assess and validate the built model.
+
+ Model Evaluation:
+  - Measurement of the model's performance:
+      - *Accuracy and Cost-Sensitive Measures*: Evaluated using a confusion matrix,
+         providing insights into the model's predictive accuracy and its performance regarding the different classes.
+ The tools and packages used in this process involved the 'party' and 'caret' packages for classification tasks. Specifically:
+
+ Methodologies and Techniques:
+    - Data Splitting: Employed the 'sample' method to partition the dataset into training and testing subsets.
+#   - Decision Tree Construction: Leveraged the 'rpart.plot' method for building the decision tree structure.
+#   - Prediction and Testing: Utilized the 'predict' method to assess and test the model's predictions.
+#   - *Model Evaluation*: Employed the 'confusionMatrix' method to assess the model's performance through the confusion matrix.
+
+ The training process for our supervised classification model involved the following steps.
+ Given that classification is a form of supervised learning, it necessitates training data to instruct the model.
+Our training procedure was executed in the following manner:
+
+Data Splitting for Training:
+ - Utilization of the 'rpart()' method to partition the dataset into two distinct subsets: training data and testing data.
+  - We experimented with three different sizes for the training subset: 70%, 60%, and 80%.
+     This variation aimed to identify the subset size that yielded the highest accuracy for our model.
+   - Considering the limited size of our dataset, we set the 'replace' attribute to "TRUE."
+   This setting allowed the selection of tuples in the training data with replacement,
+     while the remaining data was included in the testing data portion.
+  - Emphasized allocating the largest proportion to the training subset.
+    This decision was made due to the belief that a larger training set improves our model's predictive capabilities.
+
+This method was employed to ensure that the model could learn effectively from a significant portion of the available data,
+ with variations in the training subset size aimed at optimizing the model's accuracy.
+
+
+```{r}
+# Make sure you have the required libraries installed
+install.packages("rpart")
+install.packages("rpart.plot")
+
+# Load necessary libraries
+library(rpart)
+library(rpart.plot)
+
+```
+
+
+```{r}
+#partioning the data into (60 % training,40% testing)
+  
+  
+set.seed(123)
+ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.60, 0.40))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+
+# Assuming zomato_ctree is generated using rpart
+# Example of fitting an rpart model
+zomato_ctree <- rpart(rate ~ numofratings + avgCost, data = trainData,parm=list(split="information"))
+
+# Visualize the decision tree using rpart.plot
+rpart.plot(zomato_ctree)
+
+
+
+
+
+
+
+
+```
+
+
+```{r}
+#Descriptin:
+#The first node represents the rate 'Good'. This means that the initial splitting of the data based on the 'rate' feature led to a primary node labeled as 'Good'. It branches to 'Bad' when 'numofrating' is less than 0.026 and 'Okay' when 'numofrating' is larger than 0.0033. This indicates that the decision tree further classifies 'Good' into 'Bad' and 'Okay' based on conditions related to the 'numofrating' feature. The leaf nodes represent all class labels 'Bad', 'Great', 'Okay'. Each leaf node represents a final decision or label. The 'Great' label is repeated more than others, with the average cost for 'Bad' and 'Great' being less than 0.31. For 'Great', the percentage is >=0.15 and for 'Good', it's less. This section seems to detail certain conditions within the branches or nodes. It suggests that 'Great' is more frequent, with specific criteria related to 'avg cost' and 'percentage'. For 'Good', 'Great', and 'Okay', 'numofrating' varies accordingly. This part of the interpretation explains the 'numofrating' conditions for 'Good', 'Great', and 'Okay'.
+```
+
+
+
+
+```{r}
+# Make predictions on the test set
+predictions <- predict(zomato_ctree, testData, type = "class")  # Assuming it's a classification problem
+ 
+#Accuracy of model is given by
+((10+12+14)/nrow(testData))*100
+
+install.packages('caret')
+library(caret)
+results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"]*100
+acc
+results
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+print(results)
+
+
+```
+
+
+```{r}
+
+#partioning the data into (60 % training,40% testing)
+  
+  
+set.seed(123)
+ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.75, 0.25))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+
+# Assuming zomato_ctree is generated using rpart
+# Example of fitting an rpart model
+zomato_ctree <- rpart(rate ~ numofratings + avgCost, data = trainData,parm=list(split="information"))
+
+# Visualize the decision tree using rpart.plot
+rpart.plot(zomato_ctree)
+
+
+
+
+
+
+
+
+```
+
+
+```{r}
+#Discription:The first node represents the rate 'Great'. This means that the initial splitting of the data based on the 'rate' feature led to a primary node labeled as 'Great'. It branches to 'Bad' when 'numofrating' is less than 0.026 and 'Okay' when 'numofrating' is larger than 0.0033. This indicates that the decision tree further classifies 'Great' into 'Bad' and 'Okay' based on conditions related to the 'numofrating' feature. When the rate is 'Good,' the average cost will be high, defined by avg cost >= 0.2 for 'Good' and avgCost >= 0.15 for 'Bad'. Each leaf node represents a final decision or label, where 'Bad' has (92, 27%) instances with avgCost < 0.31, 'Great' has (0.5%) instances with avgCost < 0.31, and (0.2%) instances with avgCost >= 0.2, and 'Good' has (0.14%) instances with avgCost >= 0.2. This structure provides a comprehensive understanding of the decision-making process in the decision tree.
+```
+
+
+
+```{r}
+# Make predictions on the test set
+predictions <- predict(zomato_ctree, testData, type = "class")  # Assuming it's a classification problem
+ 
+#Accuracy of model is given by
+((10+12+14)/nrow(testData))*100
+
+install.packages('caret')
+library(caret)
+results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"]*100
+acc
+results
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+print(results)
+```
+
+
+```{r}
+
+#partioning the data into (60 % training,40% testing)
+  
+  
+set.seed(123)
+ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.80, 0.30))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+
+# Assuming zomato_ctree is generated using rpart
+# Example of fitting an rpart model
+zomato_ctree <- rpart(rate ~ numofratings + avgCost, data = trainData,parm=list(split="information"))
+
+# Visualize the decision tree using rpart.plot
+rpart.plot(zomato_ctree)
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+# Make predictions on the test set
+predictions <- predict(zomato_ctree, testData, type = "class")  # Assuming it's a classification problem
+ 
+#Accuracy of model is given by
+((10+12+14)/nrow(testData))*100
+
+install.packages('caret')
+library(caret)
+results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"]*100
+acc
+results
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+print(results)
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
