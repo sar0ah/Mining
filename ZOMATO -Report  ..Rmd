@@ -1,0 +1,1472 @@
+---
+title: "ZOMATO"
+output: html_notebook
+---
+
+# 1-Problem:
+in our project we chose the dataset of the restaurants in Zomato which
+is an Indian multinational restaurant aggregator and food delivery
+company. This dataset contains information about various restaurants
+listed on the platform, including their location, cuisine type, ratings,
+and other essential attributes.we will study and analyze the restaurants
+data that will help us identify the preferred cost range and the most
+likable restaurant type and cuisines type that leads into high ratings
+to help people who are interested in putting their restaurants on the
+platform by predicting the ratings of new restaurants on the platform.
+The primary problem this dataset aims to address is the analysis and
+understanding of factors influencing the success and popularity of
+restaurants. By exploring this dataset, one can uncover patterns,
+trends, and correlations that shed light on what makes a restaurant
+thrive in the competitive food industry. Key questions may revolve
+around the impact of location, cuisine diversity, pricing, and customer
+ratings on a restaurant's overall performance. Analyzing this dataset
+could provide valuable insights for restaurant owners, investors, and
+food enthusiasts alike, helping them make informed decisions and
+contributing to the optimization of the dining experience.
+
+# 2-Data Mining Task:
+
+We want to solve this problem by classification data mining task, to predict the highest ratings based on restaurant type, average cost of two people, and the cuisine's type, by choosing rating as class label.
+
+#3.0- Data set information:
+
+We choose this data from Kaggle website(<https://www.kaggle.com/datasets/abhijitdahatonde/zomato-restaurants-dataset>) This dataset provides us with information about different type of restaurant and there ratings in food application called Zomato, it consists the following attributes:
+
+
+Data set info:
+Number of attributes:12
+
+Number of objects:7104
+
+| Attribute         | Description                                                                                                                                   | Type                | Possible values                                               |
+|------------------|------------------|-------------------|------------------|
+| \#                | Index                                                                                                                                         | Numeric-Ratio       | [0-7014]                                                      |
+| Restauran name    | Name of restaurant that application offered by the application                                                                                | Nominal             | #FeelTheROLL #L-81 Cafe #refuel'\@ Biryani Central'\@ The Bbq |
+| Restaurant type   | restaurant type includes the type of the restaurant and if it has delivery or takeaway                                                        | Nominal             | Quick Bites ,Casual Dining, Cafe, Delivery Takeaway           |
+| Rate              | Express your opinion or assessme                                                                                                              | Numeric- Interval   | [1.8-4.9]                                                     |
+| Number of ratings | refers the count of how many times a restaurant or product has been rated or reviewed by customer or user                                     | Numeric- Interval   | [1-16,300]                                                    |
+| Avg cost          | Total cost of order                                                                                                                           | Numeric- Interval   | [40-6000]                                                     |
+| Online order      | This means that customers have the option to place their food orders through the restaurant's website or a dedicated online ordering platform | Binary (Asymmetric) | 1(Yes),0(No)                                                  |
+| Teble booking     | This refers to the process of reserving a table at a restaurant in advance                                                                    | Binary (Asymmetric) | 1(Yes),0(No)                                                  |
+| Cuisines type     | This represents the style or category of food and dishes that a restaurant specializes in or offers                                           | Nominal             | North Indian ,Chinese ,North Indian,Fast Food                 |
+
+Type Markdown and LaTeX: 𝛼2Type Markdown and LaTeX: 𝛼2
+
+
+# 3.1-Sample of data:
+
+
+```{r}
+print(zomato)
+```
+
+
+Data:
+```{r}
+zomato <- read.csv("zomato.csv")
+```
+
+```{r}
+summary(zomato)
+```
+
+```{r}
+head(zomato)
+```
+
+
+
+```{r}
+sum(is.na(zomato))
+```
+
+
+
+
+# 3.2-Boxplot:
+
+```{r}
+boxplot.stats(zomato$rate)$out
+
+```
+
+```{r}
+boxplot.stats(zomato$avgCost)$out
+
+```
+
+```{r}
+boxplot.stats(zomato$numofratings)$out
+
+```
+
+description Rating depend in the reviewer's preferences, these ratings are subjective and can change over time, by this boxplot we can determine the outliers which are few.
+
+```{r}
+boxplot(zomato$rate)
+
+```
+
+ Description:
+
+The number of rating boxplot shows that value are close and there hug verity of numbers and a lot of ouliers.
+
+```{r}
+boxplot(zomato$numofratings)
+
+```
+
+ Description:
+
+the avrage cost of two people boxpot illustrates that there is few outlairs above 1000
+
+```{r}
+boxplot(zomato$avgCost)
+
+```
+
+ Description:
+
+scatterplot visualiz the relationship between two variables and identifying patterns or trends in the data, in this scatterplot we can see that
+
+```{r}
+plot(zomato$rate,zomato$avgCost)
+
+```
+ 3.3-Description:
+This histogram show the frequency average cost, by looking we can se that most people spends between 0-1000
+```{r}
+hist(zomato$avgCost)
+```
+ 3.4-Description:
+
+This pie chart shows if the restaurants offer online order or not, looking at it we can see that they are slightly similar.
+```{r}
+onlineOrder <- table(zomato$online_order)
+pie(onlineOrder)
+```
+
+# 3.5-Statistical Measures:
+The statistical measures in R, such as mean, standard deviation, median, and others, are primarily applied to numeric data. These measures help in summarizing, describing, and understanding the properties and characteristics of numerical data. When applied to numeric data, they provide valuable insights and descriptive statistics that aid in understanding the distribution, central tendency, variability, and other important characteristics of the dataset.
+
+Numeric statistical measures in R are specifically designed to work with numerical data to derive insights and statistical summaries.
+```{r}
+summary (zomato$rate)
+
+```
+
+```{r}
+summary(zomato$numofratings)
+
+```
+
+```{r}
+summary(zomato$avgCost)
+
+```
+# 4.0: Data preprocessing :
+is a crucial step in our analytical approach to the Zomato restaurant dataset. This procedure is essential to ensure the accuracy and reliability of the data and to address issues such as missing values and inconsistent datasets, which are commonly encountered challenges. By handling missing data through imputation or removing incomplete records, our aim is to establish a more complete dataset for analysis. Addressing incomplete records and missing data is undertaken with the goal of creating a more comprehensive dataset for our study.
+
+Additionally, to ensure consistency across various data formats, we employ normalization techniques. Normalization facilitates accurate comparisons and enables us to draw insightful conclusions from the data. Furthermore, to prevent outliers from distorting our analysis, we take measures to address them.
+
+Feature selection is another integral part of our preprocessing. This process involves the careful selection of a subset of variables or data from a larger set, allowing us to streamline the dataset for analysis. Through these preprocessing steps, we strive to enhance the quality and suitability of the data for our analytical endeavors.
+
+#4.1 - Data Cleaning:
+
+Data cleaning is a foundational process in the Zomato datasets designed to rectify errors and inconsistencies present in the raw data. The significance of data cleaning lies in its pivotal role in enhancing the accuracy and reliability of the information. One common challenge addressed during this process is missing data. Beyond just improving accuracy, data cleaning contributes significantly to overall data quality, ensuring that the dataset is well-suited for analysis and decision-making.
+
+The improved quality of cleaned data holds particular importance in machine learning applications. In this context, data quality directly influences the performance of models, leading to more accurate predictions. Therefore, the meticulous process of data cleaning not only rectifies errors but also plays a crucial role in optimizing data for advanced analytical techniques.
+
+
+
+
+#4.3-Missing and null values:
+Missing or null values can significantly impact the effectiveness of a dataset and the quality of insights that can be derived from it. Therefore, we conducted an examination of our data to identify and eliminate any rows containing missing or null values. This process was undertaken to enhance the overall efficiency and reliability of our dataset, ensuring more accurate analysis and valuable information extraction in subsequent steps.
+
+-Check for missing or null value:
+
+```{r}
+dim(zomato)
+
+```
+
+```{r}
+zomato =na.omit(zomato)
+
+```
+
+```{r}
+dim(zomato)
+
+```
+
+```{r}
+sum(is.na(zomato))
+
+```
+#    4.4-Detecting and removing the outliers:
+Initially, we detected any unusual data points in the numerical
+attributes. Subsequently, we removed the rows containing these outliers
+in order to create a more precise dataset, which would ultimately
+enhance the accuracy of our later results and have better
+prediction.
+
+```{r}
+library(outliers)
+```
+
+Detect outliers in the 'numofratings' column of the 'zomato' dataset :
+
+```{r}
+OutN = outlier(zomato$numofratings, logical =TRUE)
+
+```
+
+Sum the number of outliers detected.
+
+```{r}
+sum(OutN)
+
+```
+
+Find the indices of the outliers in the 'numofratings' column.
+
+```{r}
+Find_outlier = which(OutN ==TRUE, arr.ind = TRUE)
+
+```
+
+Display the logical vector indicating outliers.
+
+```{r}
+OutN
+```
+
+Display the indices of the outliers.
+
+```{r}
+Find_outlier
+
+```
+
+  Remove rows with outliers from the 'zomato' dataset:
+
+```{r}
+zomato= zomato[-Find_outlier,]
+
+```
+
+We replicated the procedures outlined in the previous code but with the column avgCost.
+
+```{r}
+OutAv = outlier(zomato$avgCost, logical =TRUE)
+sum(OutAv)
+
+```
+
+```{r}
+Find_outlier = which(OutAv ==TRUE, arr.ind = TRUE)
+OutAv
+
+```
+
+```{r}
+Find_outlier
+```
+
+```{r}
+zomato= zomato[-Find_outlier,]
+```
+
+Resutlt of dataset after removing outlier:
+```{r}
+head(zomato)
+
+```
+#4.4-Data transformation: The process of transforming unprocessed data
+into a format better suited for analysis, modeling, or visualization is
+known as data transformation. This conversion may entail a number of
+procedures and methods to improve the accuracy and value of the data.
+Data transformation objectives could include:
+
+#4.5-Data encoding: Encoding plays a crucial role in various data mining
+and machine learning tasks, as it facilitates the transformation of raw
+data into a format that algorithms can effectively process and analyze.
+This process involves converting categorical or textual data into
+numerical representations, ensuring compatibility with the computational
+requirements of the algorithms involved.
+
+ 
+
+#4.6-Normalize Data using Min-Max Scaling: normalization was performed to
+ensure consistent scaling of the data. The normalization technique
+applied was the max-min normalization. This technique rescales the
+values of specific attributes within a defined range between 0 and 1.
+The following attributes were selected for normalization: numofrating,
+avgCost We can use the normalized dataset provides a more uniform and
+comparable representation of the attributes, enabling accurate analysis
+and modeling for rate.
+```{r}
+##Encoding:
+zomato$tablebooking=factor(zomato$tablebooking , levels =c("No","Yes"), labels = c(0,1))
+zomato$online_order=factor(zomato$online_order , levels =c("No","Yes"), labels = c(0,1))
+##Normalization:
+normalize <- function(x){return ((x-min(x))/(max(x)-min(x)))}
+
+ 
+```
+
+
+```{r}
+##Normalization:
+zomato$numofratings<- normalize(zomato$numofratings)
+zomato$avgCost<- normalize(zomato$avgCost)
+
+##Encoding:
+zomato$rate <- ifelse(zomato$rate <= 2, "Bad",
+                  ifelse(zomato$rate <=3, "Okay",
+                      ifelse(zomato$rate <=4, "Good",
+                             ifelse(zomato$rate <=5, "Great",0 ))))
+
+
+```
+
+
+
+-Result of dataset after Normalization and encoding:
+
+```{r}
+head(zomato)
+
+```
+
+#4.7 Features selection:
+
+Feature selection is a process in machine learning, it is used to improve model performance. In several datasets, there are many features, and not all of the features participate equally to the performance of the model. Some of the features could even make redundancy or some noise. Feature selection assist in showing the most relevant features, leading to simpler and more interpretable models.  
+
+```{r}
+# load the library
+ library(mlbench)
+library(caret)
+library(randomForest)
+```
+
+
+
+```{r}
+# ensure the results are repeatable
+set.seed(7)
+
+# Convert the class label to a factor
+
+zomato$rate <- as.factor(zomato$rate )
+
+
+
+# Separate the predictors and the class label
+
+predictors <- zomato[, -5]  # Excluding the class label (satisfaction)
+class_label <- zomato$rate 
+
+
+# Train a Random Forest model
+
+model <- randomForest(predictors, class_label, importance = TRUE)
+
+
+
+# Get the variable importance
+
+importance <- importance(model)
+
+ranked_features <- sort(importance[, "MeanDecreaseGini"], decreasing = TRUE)
+
+
+
+# Print the ranked features
+print(ranked_features)
+
+barplot(ranked_features, horiz = TRUE, col = c("lightblue2"), las = 1, main = "Features selection")
+```
+
+
+
+
+
+#balance:
+Balance or imbalance ?The provided code snippet in R performs a process known as data upscaling or oversampling. This technique is commonly used to address imbalances within categorical classes by generating additional instances of the underrepresented class.
+
+Zomato data set is Balance 
+
+```{r}
+library(ROSE)
+# upscaling the data
+
+zomato$rate <- as.factor(zomato$rate)
+zomato<-upSample(zomato[,-5],zomato$rate, yname="rate")
+plot(zomato$rate)
+
+#checking the rate observations 
+prop.table(table(zomato$rate))
+title(main="Data after oversampling", xlab="rate", ylab="observations")
+
+ 
+
+```
+
+
+#5.0. Data Mining Technique:
+
+#5.1-Classification:
+
+  We employed both supervised and unsupervised learning methodologies on our dataset by leveraging classification and clustering techniques.
+  For classification, we utilized a decision tree—a recursive algorithm generating a tree structure with leaf nodes that represent final decisions.
+  Our model is geared towards predicting the class label ('rate'), categorized into four classes: 'Good,' 'Great,' and 'Bad 'Okaya'.
+  The prediction is based on the remaining attributes ('numRatin' and 'avgCost').
+ This technique involved the following steps:
+
+ Data Splitting:
+   - Dividing the dataset into two distinct sets:
+      - Training dataset: Employed for constructing the decision tree.
+       - Testing dataset: Utilized to assess and validate the built model.
+
+ Model Evaluation:
+  - Measurement of the model's performance:
+      - Accuracy and  Measures: Evaluated using a confusion matrix,
+         providing insights into the model's predictive accuracy and its performance regarding the different classes.
+ The tools and packages used in this process involved the 'party' and 'caret' packages for classification tasks. Specifically:
+
+ Methodologies and Techniques:
+    - Data Splitting: Employed the 'sample' method to partition the dataset into training and testing subsets.
+  - Decision Tree Construction: Leveraged the 'rpart.plot' method for building the decision tree structure.
+  - Prediction and Testing: Utilized the 'predict' method to assess and test the model's predictions.
+   - Model Evaluation: Employed the 'confusionMatrix' method to assess the model's performance through the confusion matrix.
+
+ The following steps were engaged in our supervised classification model's training procedure.
+ Since classification is a type of supervised learning, the model needs to be trained using training data.
+We carried out our training protocol in the following ways:
+Data Splitting for Training:
+
+ - Utilization of the 'rpart()' method to partition the dataset into two distinct subsets: training data and testing data.
+  - We experimented with three different sizes for the training subset: 60%, 75%, and 80%.
+     This variation aimed to identify the subset size that yielded the highest accuracy for our model.
+   - Considering the limited size of our dataset, we set the 'replace' attribute to "TRUE."
+   This setting allowed the selection of tuples in the training data with replacement,
+     while the remaining data was included in the testing data portion.
+  - Emphasized allocating the largest proportion to the training subset.
+    This decision was made due to the belief that a larger training set improves our model's predictive capabilities.
+
+
+
+```{r}
+# Make sure you have the required libraries installed
+
+
+# Load necessary libraries
+library(rpart)
+library(rpart.plot)
+
+
+
+```
+
+ Based on the feature selection method that we did we chose the two attributes that yield the best score because when we did it for all of the attributes the trees weren’t clear and there was a conflict in the trees, so we decided to take only the two attributes that were related the most,but we decided not to include the "cuisine type" attribute in our analysis because running the analysis with this attribute took a considerable amount of time and yielded no results. Although we converted it to a factor, the plot generated was unclear due to the excessive number of values associated with this attribute.
+
+
+
+#  5.2-Information gain:
+is a concept used in decision tree algorithms to choose the best attributes for splitting data.
+  It quantifies how much a feature reduces uncertainty or disorder in the dataset .
+ Features with higher information gain are preferred as they provide more helpful insights when making decisions in the tree, improving the accuracy of the model,use tow package ('rpat','rpart.plot').
+ 
+  
+
+partioning the data into (60 % training,40% testing):
+```{r}
+set.seed(123)
+ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.60, 0.40))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+```
+
+
+```{r}
+# Assuming zomato_ctree is generated using rpart
+# Example of fitting an rpart model
+
+zomato_ctree <- rpart(rate ~ numofratings + avgCost,data=trainData,parm=list(split="information"))
+
+# Visualize the decision tree using rpart.plot
+rpart.plot(zomato_ctree)
+
+
+
+```
+
+
+ Descriptin:
+The first node represents the rate 'Good'. This means that the initial splitting of the data based on the 'rate' feature led to a primary node labeled as 'Good'. It branches to 'Bad' when  and 'Okay' when 'numofrating' is larger than 0.014 This indicates that the decision tree further classifies 'Good' into 'Bad' and 'Okay' based on conditions related to the 'numofrating' feature. The leaf nodes represent all class labels 'Bad', 'Great', 'Okay'. Each leaf node represents a final decision or label. The 'Great' label is repeated more than others, with the average cost for 'Bad' and 'Great' being less than 0.31. For 'Great', the percentage is >=0.15 and for 'Good', it's less. This section seems to detail certain conditions within the branches or nodes. It suggests that 'Great' is more frequent, with specific criteria related to 'avg cost' and 'percentage'. For 'Good', 'Great', and 'Okay', 'numofrating' varies accordingly. This part of the interpretation explains the 'numofrating' conditions for 'Good', 'Great', and 'Okay'.
+
+
+
+```{r}
+ library(caret)
+library(confusionMatrix)
+```
+
+```{r}
+# Make predictions on the test set
+# Confusion matrix
+predictions <- predict(zomato_ctree, testData, type = "class")
+ 
+#Accuracy of model is given by
+average_rate <- mean(testData$rate, na.rm = TRUE)
+percentage_average_rate <- (average_rate / nrow(testData)) * 100
+
+results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"] * 100
+
+
+print(results)
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+ 
+```
+
+partioning the data into (75 % training,25% testing)
+
+```{r}
+ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.75, 0.25))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+
+```
+  
+
+```{r}
+
+# Assuming zomato_ctree is generated using rpart
+# Example of fitting an rpart model
+zomato_ctree <- rpart(rate ~ numofratings + avgCost, data = trainData,parm=list(split="information"))
+
+# Visualize the decision tree using rpart.plot
+rpart.plot(zomato_ctree)
+
+
+
+```
+Discription:The first node represents the rate 'Bad'. This means that the initial splitting of the data based on the 'rate' feature led to a primary node labeled as 'Great'. It branches to 'Bad'  and 'Okay' when 'numofrating' is larger than 0.014,This indicates that the decision tree further classifies 'Great' into 'Bad' and 'Okay' based on conditions related to the 'numofrating' feature. When the rate is 'okay,'(52%) the numofrating is less than 0.024 Good' and avgCost >= 0.15 for 'Bad' (46%) numofrating is less than 0.026. Each leaf node represents a final decision or label, where 'Bad' has (92, 27%) instances with avgCost < 0.31, 'Great' has (0.5%) instances with avgCost < 0.31, and 'Good' has (0.0,14%)and 'Good'(00,18%) instances with numofrating >= 0.026,then 'Good' (00,20%) numofrating<0.024,it's close to dession tree (60 % training,40% testing) the difference between them is simple.
+
+```{r}
+ library(caret)
+```
+
+
+
+```{r}
+# Make predictions on the test set
+# Confusion matrix
+predictions <- predict(zomato_ctree, testData, type = "class")
+ 
+#Accuracy of model is given by
+average_rate <- mean(testData$rate, na.rm = TRUE)
+percentage_average_rate <- (average_rate / nrow(testData)) * 100
+
+results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"] * 100
+
+
+print(results)
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+
+```
+
+
+partioning the data into (80 % training,20% testing)
+```{r}
+ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.80, 0.20))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+```
+
+
+```{r}
+# Assuming zomato_ctree is generated using rpart
+# Example of fitting an rpart model
+zomato_ctree <- rpart(rate ~ numofratings + avgCost, data = trainData,parm=list(split="information"))
+
+# Visualize the decision tree using rpart.plot
+rpart.plot(zomato_ctree)
+
+```
+The first node represents the “great” rate. This means that the initial partitioning of the data based on the “average” feature resulted in a primary node marked as “great”. It is divided into “bad”  and “okay” when the “number of rating ” is greater than 0014. This indicates that the decision tree classifies “good” into “bad” and “good” based on conditions related to the “number” feature. The leaf nodes represent all the category labels “bad,” “great,” and “good.” Each leaf node represents a final decision or designation. The rating "bad" and "Good" and "Okay, then Great' is more frequent than others, with the average cost of “Bad” and “Great” less than 0.31. For “Great”(15%)the ratio is greater than = 0.15 and for “Good”, it is less. This section appears to detail certain conditions within branches or nodes. She notes that “great” is the most frequently mentioned word, with specific criteria being “average cost” and “percentage.” For 'good', 'great' and 'okay', the 'number' varies accordingly, is great accuracy than other tree,i think it's butter.
+
+```{r}
+ 
+library(caret)
+```
+
+
+```{r}
+ 
+# Make predictions on the test set
+# Confusion matrix
+predictions <- predict(zomato_ctree, testData, type = "class")
+ 
+#Accuracy of model is given by
+average_rate <- mean(testData$rate, na.rm = TRUE)
+percentage_average_rate <- (average_rate / nrow(testData)) * 100
+
+results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"] * 100
+
+
+print(results)
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+
+
+```
+
+
+
+```{r}
+library(ipred)
+library(rpart)
+library(rpart.plot)
+library(caTools)
+library(party)
+
+```
+
+
+#   5.3-Gain Ratio:
+Decision trees are powerful tools in machine learning that enable the exploration of complex decision-making processes. Gain Ratio Decision Trees, 
+a variant of traditional decision trees, offer a sophisticated approach to constructing a predictive model by intelligently selecting the most informative features. The Gain Ratio is a criterion used in the process of decision tree induction, specifically designed to overcome certain limitations associated with other splitting criteria, such as Information Gain.
+The primary objective of a Gain Ratio Decision Tree is to create a tree structure that efficiently classifies or predicts outcomes based on the available input features. Unlike Information Gain, which tends to favor attributes with a large number of categories, Gain Ratio introduces a normalization factor that helps balance the bias towards attributes with many categories. This makes Gain Ratio particularly useful when dealing with datasets containing features of varying cardinalities.
+
+
+```{r}
+#partition the data into ( 60% training, 40% testing):
+#splitting 60% of data for training, 40% of data for testing
+set.seed(123)
+ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.60, 0.40))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+
+
+
+myFormula<- rate~ avgCost+numofratings
+rate_ctree <- ctree(myFormula, data = trainData, controls = ctree_control(maxdepth = 3))
+# check the prediction
+table(predict(rate_ctree), trainData$rate)
+print(rate_ctree)
+
+# Plot the ctree
+plot(rate_ctree, type = "simple")
+plot(rate_ctree, type = "simple", extra = 1, under = TRUE)
+
+
+
+
+
+```
+
+
+```{r}
+  # Make predictions on the test set
+
+predictions <- predict(rate_ctree, testData, type = "response")  
+ 
+#Accuracy of model is given by
+average_rate <- mean(testData$rate, na.rm = TRUE)
+percentage_average_rate <- (average_rate / nrow(testData)) * 100
+
+
+#Accuracy of model is given by
+average_rate <- mean(testData$rate, na.rm = TRUE)
+percentage_average_rate <- (average_rate / nrow(testData)) * 100
+
+results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"] * 100
+
+
+print(results)
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+```
+
+
+```{r}
+#partition the data into ( 75% training, 25% testing):
+#splitting 75% of data for training, 25% of data for testing
+set.seed(123)
+ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.75, 0.25))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+
+myFormula<- rate~ avgCost+numofratings
+rate_ctree <- ctree(myFormula, data = trainData, controls = ctree_control(maxdepth = 3))
+# check the prediction
+table(predict(rate_ctree), trainData$rate)
+print(rate_ctree)
+plot(rate_ctree,type="simple")
+plot(rate_ctree,type = "simple", extra = 1, under = TRUE)
+
+
+
+
+
+
+
+```
+
+
+```{r}
+predictions <- predict(rate_ctree, testData, type = "response")  
+ 
+#Accuracy of model is given by
+average_rate <- mean(testData$rate, na.rm = TRUE)
+percentage_average_rate <- (average_rate / nrow(testData)) * 100
+
+
+library(caret)
+results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"]*100
+acc
+results
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+print(results)
+
+```
+
+
+```{r}
+#partition the data into ( 80% training, 20% testing):
+#splitting 80% of data for training, 20% of data for testing
+set.seed(123)
+ind <- sample(2, nrow(zomato), replace=TRUE, prob=c(0.80, 0.20))
+trainData <- zomato[ind==1,]
+testData <- zomato[ind==2,]
+
+
+myFormula<- rate~ avgCost+numofratings
+rate_ctree <- ctree(myFormula, data = trainData, controls = ctree_control(maxdepth = 3))
+# check the prediction
+table(predict(rate_ctree), trainData$rate)
+print(rate_ctree)
+plot(rate_ctree,type="simple")
+plot(rate_ctree,type = "simple", extra = 1, under = TRUE)
+
+
+
+
+
+```
+
+
+```{r}
+predictions <- predict(rate_ctree, testData, type = "response")  
+ 
+#Accuracy of model is given by
+average_rate <- mean(testData$rate, na.rm = TRUE)
+percentage_average_rate <- (average_rate / nrow(testData)) * 100
+
+
+library(caret)
+results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"]*100
+acc
+results
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+print(results)
+```
+
+
+
+5.7-Gini Index:
+In the realm of decision tree algorithms and binary classification problems, the Gini Index stands as a fundamental metric for evaluating the impurity or disorder within a dataset. this index serves as a criterion for determining the optimal split of data points, facilitating the construction of decision trees that effectively classify and predict outcomes.
+The Gini Index quantifies the probability of incorrectly classifying a randomly chosen element in the dataset. In the context of decision trees, it measures the impurity of a particular node by assessing the likelihood that a randomly selected sample from the node is misclassified. A lower Gini Index implies higher purity, indicating a more homogeneous set of samples in terms of the target variable.
+
+partition the data into ( 60% training, 40% testing):
+
+```{r}
+ 
+#splitting 70% of data for training, 30% of data for testing
+set.seed(123)
+sample <- sample.split(data_class$stroke, SplitRatio = 0.6)
+trainData  <- subset(data_class, sample == TRUE)
+testData   <- subset(data_class, sample == FALSE)
+
+#train using the trainData and create the rpart gini index tree
+library('rpart')
+library('rpart.plot')
+tree <- rpart(myFormula, data = trainData,method = 'class')
+rpart.plot(tree)
+```
+
+
+
+
+ 
+```{r}
+ #splitting 80% of data for training, 20% of data for testing
+
+
+set.seed(1958)
+
+train_indices <- sample(1:nrow(zomato), 0.6 * nrow(zomato))
+zomato.train <- zomato[train_indices, ]
+zomato.test <- zomato[-train_indices, ]
+
+# Build the decision tree with Gini index as the criterion
+ 
+model <- rpart(rate ~ numofratings + avgCost, data = zomato.train, method = "class", parms = list(split = "gini"))
+
+# Increase the size of the plot
+options(repr.plot.width = 12, repr.plot.height = 8)
+# Prune the tree using the complexity parameter (adjust cp as needed)
+pruned_model <- prune(model, cp = 0.01)
+
+# Plot the decision tree with improved layout
+rpart.plot(model)
+text(pruned_model, use.n = TRUE, cex = 0.7)
+
+
+```
+
+ 
+
+```{r}
+ predictions <- predict(rate_ctree, testData, type = "response")  
+ 
+#Accuracy of model is given by
+average_rate <- mean(testData$rate, na.rm = TRUE)
+percentage_average_rate <- (average_rate / nrow(testData)) * 100
+
+
+ results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"]*100
+acc
+results
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+print(results)
+# Extract values from confusion matrix
+tp <- results$table["1", "1"]  # True Positives
+fp <- results$table["0", "1"]  # False Positives
+
+# Calculate precision
+precision_manual <- tp / (tp + fp)
+cat("Precision (Manual Calculation):", precision_manual, "\n")
+
+```
+
+ 
+
+
+
+ 
+
+partition the data into ( 75% training, 25% testing):
+
+```{r}
+#splitting 75% of data for training, 25% of data for testing
+
+
+train_indices <- sample(1:nrow(zomato), 0.75 * nrow(zomato))
+zomato.train <- zomato[train_indices, ]
+zomato.test <- zomato[-train_indices, ]
+
+# Build the decision tree with Gini index as the criterion
+ 
+model <- rpart(rate ~ numofratings + avgCost, data = zomato.train, method = "class", parms = list(split = "gini"))
+
+# Increase the size of the plot
+options(repr.plot.width = 12, repr.plot.height = 8)
+# Prune the tree using the complexity parameter (adjust cp as needed)
+pruned_model <- prune(model, cp = 0.01)
+
+# Plot the decision tree with improved layout
+rpart.plot(model)
+text(pruned_model, use.n = TRUE, cex = 0.7)
+
+```
+
+
+```{r}
+ predictions <- predict(rate_ctree, testData, type = "response")  
+ 
+#Accuracy of model is given by
+average_rate <- mean(testData$rate, na.rm = TRUE)
+percentage_average_rate <- (average_rate / nrow(testData)) * 100
+
+
+ results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"]*100
+acc
+results
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+print(results)
+```
+
+
+
+
+
+
+
+partition the data into ( 80% training, 20% testing):
+
+
+```{r}
+#splitting 80% of data for training, 20% of data for testing
+
+
+train_indices <- sample(1:nrow(zomato), 0.75 * nrow(zomato))
+zomato.train <- zomato[train_indices, ]
+zomato.test <- zomato[-train_indices, ]
+
+# Build the decision tree with Gini index as the criterion
+ 
+model <- rpart(rate ~ numofratings + avgCost, data = zomato.train, method = "class", parms = list(split = "gini"))
+
+# Increase the size of the plot
+options(repr.plot.width = 12, repr.plot.height = 8)
+# Prune the tree using the complexity parameter (adjust cp as needed)
+pruned_model <- prune(model, cp = 0.01)
+
+# Plot the decision tree with improved layout
+rpart.plot(model)
+text(pruned_model, use.n = TRUE, cex = 0.7)
+
+```
+
+
+```{r}
+ predictions <- predict(rate_ctree, testData, type = "response")  
+ 
+#Accuracy of model is given by
+average_rate <- mean(testData$rate, na.rm = TRUE)
+percentage_average_rate <- (average_rate / nrow(testData)) * 100
+
+
+ results <- confusionMatrix(predictions, testData$rate)
+acc <- results$overall["Accuracy"]*100
+acc
+results
+as.table(results)
+as.matrix(results)
+as.matrix(results, what = "overall")
+as.matrix(results, what = "classes")
+print(results)
+
+```
+
+
+#6.0-Evaluation:
+
+
+
+
+
+#6.1-Evaluation for Classification:
+
+| Information Gain | 60% Train , 40% Test | 75% Train , 25% Test | 80% Train , 20% Test |
+|------------------|------------------|------------------|------------------|
+| Accuracy         | 76%                  | 76%                  | 77%                  |
+| Precision        | 67%                  | 81%                  | 68%                  |
+| Sensitivity      | 53%                  | 76%                  | 55%                  |
+| Specificity      | 55%                  | 92%                  | 54%                  |
+
+Among these partitioning ratios, the model trained on the 80% training set and 20% testing achieved the highest accuracy (0.779), followed by the model trained on the 75% training set and 25% testing set (0.767), followed by the model trained on the 60% training set and 40% testing set with an accuracy of (0.731).
+
+In terms of precision, the model trained on the 75% training set and 25% testing set obtained the highest precision (0.8142995), followed by the model trained on the 80% training set and 20% testing set (0.6885), and the model trained on the 60% training set and 40% testing set (0.6750).
+
+For sensitivity, the model trained on the 75% training set and 25% testing set achieved the highest sensitivity (0.7690125 ), followed by the models trained on the 80% training set and 20% testing set ( 0.5537), and the 60% training set and 40% testing set (0.5318).
+
+In terms of specificity, the model trained on the 75% training set and 25% testing set obtained the highest specificity (0.9225544), followed by the model trained on the 60% training set and 40% testing set (0.5596), and the model trained on the 80% training set and 20% testing set ( 0.5475).
+
+Based on these results, the model trained on the 75% training set and 25% testing set showed the best performance. The accuracy, precision, sensitivity, and specificity measures are relatively high, indicating that the model can make reasonably accurate predictions.
+
+Overall, the results obtained from the decision tree using information gain as the splitting criterion are realistic and indicate good performance.
+ 
+
+| Gini Ratio  |60% Train , 40% Test  |75 % Train , 25% Test | 80% Train , 20% Test |
+|------------------|------------------|------------------|------------------|
+| Accuracy    | 73%                  | 74%                  | 74%                  |
+| Precision   | 74%                  | 74%                  | 74%                  |
+| Sensitivity | 65%                  | 64%                  | 64%                  |
+| Specificity | 51%                  | 51%                  | 51 %                 |
+
+
+
+Among these partitioning ratios, the model trained on the 75% training set and 25% testing set achieved the highest accuracy (0.7426), followed by the model trained on the 80% training set and 20% testing set (0.7405), and the model trained on the 60% training set and 40% testing set (0.7315).
+
+In terms of precision,  the two models trained on the 75% training set and 25% testing set and 80% training set and 20% testing set there results were the same and had the highest sensitivity ( 0.7428), followed by the model trained on the 60% training set and 40% testing set  ( 0.7418).
+                                                                                                                                                                                                                                     For sensitivity, the model trained on the 60% training set and 40% testing set had the highest sensitivity (0.6516), followed by the two models trained on the 75% training set and 25% testing set and 80% training set and 20% testing set there results were the same ( 0.6451).
+
+In terms of specificity,  the model trained on the 60% training set and 40% testing set had the highest sensitivity ( 0.5119), followed by the two models trained on the 75% training set and 25% testing set and 80% training set and 20% testing set there results were the same (0.5108).
+
+Based on these results, the model trained on the 75% training set and 25% testing set appears to be the best partitioning ratio, as it showed the highest accuracy, as well as having the high results in terms of precision, sensitivity, and specificity. The 60% training set and 40% testing set had good results, but had a considerably low sensitivity compared to the others. 
+
+Overall, the results obtained from the decision tree using the gain ratio as the splitting criterion are realistic and promising. The accuracy values are reasonably high, indicating that the model can make correct predictions on the testing data. The precision, sensitivity, and specificity measures also demonstrate a good balance between correctly identifying the positive instances, correctly identifying the negative instances, and avoiding false positives and false negatives.
+
+
+
+
+||  Gain indix | 60% Train , 40% Test | 75% Train , 25% Test | 80% Train , 20% Test |
+|------------------|------------------|------------------|------------------|
+| Accuracy         | 76%                  | 76%                  | 77%                  |
+| Precision        | 67%                  | 81%                  | 68%                  |
+| Sensitivity      | 53%                  | 76%                  | 55%                  |
+| Specificity      | 55%                  | 92%                  | 54%                  |
+
+
+Among these partitioning ratios, the model trained on the 80% training set and 20% testing achieved the highest accuracy (0.779), followed by the model trained on the 75% training set and 25% testing set (0.767), followed by the model trained on the 60% training set and 40% testing set with an accuracy of (0.731).
+
+In terms of precision, the model trained on the 75% training set and 25% testing set obtained the highest precision (0.8142995), followed by the model trained on the 80% training set and 20% testing set (0.6885), and the model trained on the 60% training set and 40% testing set (0.6750).
+
+For sensitivity, the model trained on the 75% training set and 25% testing set achieved the highest sensitivity (0.7690125 ), followed by the models trained on the 80% training set and 20% testing set ( 0.5537), and the 60% training set and 40% testing set (0.5318).
+
+In terms of specificity, the model trained on the 75% training set and 25% testing set obtained the highest specificity (0.9225544), followed by the model trained on the 60% training set and 40% testing set (0.5596), and the model trained on the 80% training set and 20% testing set ( 0.5475).
+
+Based on these results, the model trained on the 75% training set and 25% testing set showed the best performance. The accuracy, precision, sensitivity, and specificity measures are relatively high, indicating that the model can make reasonably accurate predictions.
+
+Overall, the results obtained from the decision tree using Gain indix  as the splitting criterion are realistic and indicate good performance.
+
+
+ 
+
+#5.8-Clustring:
+
+Description: Clustering dataset is useful to group similar data together, and we have decided to cluster the dataset into 3,5, 7 clusters based on some evaluation method such as elbow method by (wssplot) function, and silhouette coefficient which helped us to figure how many clusters are needed for zomato dataset. The result was precisely 3.
+
+
+ we were able to select those attributes after changing them to to numeric :
+
+```{r}
+ 
+dataset<- zomato #in case we need the old data set(with the class label)
+data <- zomato[,!names(zomato) %in% c("rate","restaurant type","restaurant name","Unnamed: 0","...1","cuisinestype","area","localaddress")]  # without the "rate" column and unnecessary column 
+data$online_order <- as.numeric(data$online_order)
+data$tablebooking <- as.numeric(data$tablebooking)
+##those are the attributes 
+head(data) 
+
+```
+
+```{r}
+## library and seeds
+set.seed(8953)
+library(ggplot2)
+library(factoextra)
+
+
+```
+  k=3 
+ firstly we tried k=3 based on elbow method. as we see there is little overlap between clusters 
+```{r}
+
+k3<- kmeans(data,centers = 3, nstart = 20)
+str(k3)
+fviz_cluster(k3,data = data)
+
+```
+k=5 
+ shows little size of clusters but still has overlaps.
+```{r}
+k5<- kmeans(data,centers = 5, nstart = 20)
+str(k5)
+fviz_cluster(k5,data = data)
+```
+ k=8 
+ more overlapping and unbalance look
+```{r}
+k8<- kmeans(data,centers = 8, nstart = 20)
+str(k8)
+fviz_cluster(k8,data = data)
+
+```
+
+
+ 
+
+ we tried multiple evaluation mathod one of them is silhouette for all clusters then evaluate each cluster. as shown k=8 is similar for but we see that the below evaluation methods are more accurate
+```{r}
+fviz_nbclust(data, # data
+             kmeans, # clustering algorithm
+             method = "silhouette") # silhouette
+```
+
+
+
+With a silhouette score of 0.84, you have strong evidence that the clusters are well-separated and internally cohesive, supporting the validity of your choice for K=3 in the clustering solution. This high silhouette score suggests a clear distinction between clusters, and it strengthens the confidence in the quality of your clustering results.
+```{r}
+#avg silhouette 
+library(cluster) 
+sil <- silhouette(k3$cluster, dist(data)) 
+rownames(sil) <- rownames(data) 
+fviz_silhouette(sil) 
+```
+
+If the average silhouette width for your clustering solution is 0.77, it still indicates a reasonably good separation and cohesion of the clusters, though slightly less pronounced compared to a score of 0.84. Here's a brief interpretation.
+```{r}
+#avg silhouette 
+library(cluster) 
+sil <- silhouette(k5$cluster, dist(data)) 
+rownames(sil) <- rownames(data) 
+fviz_silhouette(sil) 
+```
+In practical terms, a silhouette score of 0.63 is still indicative of a valid clustering solution, but it might be worthwhile to explore other values of K or alternative clustering methods to see if you can achieve better-defined clusters
+
+```{r}
+#avg silhouette 
+library(cluster) 
+sil <- silhouette(k8$cluster, dist(data)) 
+rownames(sil) <- rownames(data) 
+fviz_silhouette(sil) 
+```
+
+The total within-cluster sum of squares (WSS) measures the compactness of clusters.A lower WSS indicates tighter and more compact clusters.
+
+ - The value for K=3 (898.4614) suggests a moderate level of compactness.
+```{r}
+#Total within-cluster-sum of square for 3 cluster 
+k3$tot.withinss
+```
+ - The value for K=5 (137.6409) indicates improved compactness compared to K=3.
+
+```{r}
+#Total within-cluster-sum of square for 5 cluster
+k5$tot.withinss
+```
+ - The value for K=8 (108.4075) further reduces WSS, indicating even more compact clusters.
+
+```{r}
+#Total within-cluster-sum of square for 8 cluster
+k8$tot.withinss
+```
+Choosing the appropriate value for K involves finding a balance between cluster compactness and the number of clusters.In this case, K=8 exhibits the lowest WSS, but it's essential to consider the trade-off with the interpretability of the solution.
+
+elbow:
+```{r}
+
+# The function 'wssplot' is designed for generating an Elbow Method plot to assist in determining
+# the optimal number of clusters (K) in a k-means clustering analysis.
+
+wssplot<- function (data, nc=15 ,seed=1234)
+{
+  wss<-(nrow(data)-1)*sum(apply(data,2,var))
+  for(i in 2:nc){
+    set.seed(seed)
+    wss[i] <- sum(kmeans(data,centers = i)$withinss)}
+  plot(1:nc,wss, type="b", xlab="number of clusters", ylab="within groups sum of squares")
+}
+
+wssplot(numeric_data)
+```
+
+
+
+
+
+ Precision and Recall:
+BCubed Precision measures the accuracy of the clustering with respect to precision.
+BCubed Recall assesses the completeness of the clustering with respect to recall.
+
+
+For K=3, the Precision is 0.3896808 , indicating that only around 7.7% of data points within the same cluster are truly similar. Concurrently, the Recall for K=3 is 0.5748308, denoting that approximately 46.3% of similar data points are successfully grouped into the same cluster. 
+```{r}
+
+cluster_assignments <- c(k3$cluster)
+ground_truth_labels <- c(zomato$rate)
+data <- data.frame(cluster = cluster_assignments, label = ground_truth_labels)
+
+
+# Function to calculate BCubed precision and recall
+calculate_bcubed_metrics <- function(data) {
+  n <- nrow(data)
+  precision_sum <- 0
+  recall_sum <- 0
+  
+  for (i in 1:n) {
+    cluster <- data$cluster[i]
+    label <- data$label[i]
+    
+    # Count the number of items from the same category within the same cluster
+    same_category_same_cluster <- sum(data$label[data$cluster == cluster] == label)
+    
+    # Count the total number of items in the same cluster
+    total_same_cluster <- sum(data$cluster == cluster)
+    
+    # Count the total number of items with the same category
+    total_same_category <- sum(data$label == label)
+    
+    # Calculate precision and recall for the current item and add them to the sums
+    precision_sum <- precision_sum + same_category_same_cluster /total_same_cluster
+    recall_sum <- recall_sum + same_category_same_cluster / total_same_category
+  }
+  
+  # Calculate average precision and recall
+  precision <- precision_sum / n
+  recall <- recall_sum / n
+  
+  return(list(precision = precision, recall = recall))
+}
+
+# Calculate BCubed precision and recall
+metrics <- calculate_bcubed_metrics(data)
+
+# Extract precision and recall from the metrics
+precision <- metrics$precision
+recall <- metrics$recall
+
+# Print the results
+cat("BCubed Precision:", precision, "\n")
+cat("BCubed Recall:", recall, "\n")
+
+
+```
+
+
+
+
+Moving to K=5, a slight improvement in Precision ( 0.4532639 ) is observed, although Recall slightly decreases to 0.4167089 . 
+```{r}
+
+cluster_assignments <- c(k5$cluster)
+ground_truth_labels <- c(zomato$rate)
+data <- data.frame(cluster = cluster_assignments, label = ground_truth_labels)
+
+
+# Function to calculate BCubed precision and recall
+calculate_bcubed_metrics <- function(data) {
+  n <- nrow(data)
+  precision_sum <- 0
+  recall_sum <- 0
+  
+  for (i in 1:n) {
+    cluster <- data$cluster[i]
+    label <- data$label[i]
+    
+    # Count the number of items from the same category within the same cluster
+    same_category_same_cluster <- sum(data$label[data$cluster == cluster] == label)
+    
+    # Count the total number of items in the same cluster
+    total_same_cluster <- sum(data$cluster == cluster)
+    
+    # Count the total number of items with the same category
+    total_same_category <- sum(data$label == label)
+    
+    # Calculate precision and recall for the current item and add them to the sums
+    precision_sum <- precision_sum + same_category_same_cluster /total_same_cluster
+    recall_sum <- recall_sum + same_category_same_cluster / total_same_category
+  }
+  
+  # Calculate average precision and recall
+  precision <- precision_sum / n
+  recall <- recall_sum / n
+  
+  return(list(precision = precision, recall = recall))
+}
+
+# Calculate BCubed precision and recall
+metrics <- calculate_bcubed_metrics(data)
+
+# Extract precision and recall from the metrics
+precision <- metrics$precision
+recall <- metrics$recall
+
+# Print the results
+cat("BCubed Precision:", precision, "\n")
+cat("BCubed Recall:", recall, "\n")
+
+
+```
+
+
+
+
+Lastly, for K=8, there is a further increase in Precision (0.5133538), yet Recall diminishes to0.3178337 . These metrics collectively highlight the trade-off between the precision of correctly identified similar data points within clusters and the recall of grouping all similar data points together, emphasizing the need to balance these aspects when determining the optimal number of clusters for the dataset.
+```{r}
+
+cluster_assignments <- c(k8$cluster)
+ground_truth_labels <- c(zomato$rate)
+data <- data.frame(cluster = cluster_assignments, label = ground_truth_labels)
+
+
+# Function to calculate BCubed precision and recall
+calculate_bcubed_metrics <- function(data) {
+  n <- nrow(data)
+  precision_sum <- 0
+  recall_sum <- 0
+  
+  for (i in 1:n) {
+    cluster <- data$cluster[i]
+    label <- data$label[i]
+    
+    # Count the number of items from the same category within the same cluster
+    same_category_same_cluster <- sum(data$label[data$cluster == cluster] == label)
+    
+    # Count the total number of items in the same cluster
+    total_same_cluster <- sum(data$cluster == cluster)
+    
+    # Count the total number of items with the same category
+    total_same_category <- sum(data$label == label)
+    
+    # Calculate precision and recall for the current item and add them to the sums
+    precision_sum <- precision_sum + same_category_same_cluster /total_same_cluster
+    recall_sum <- recall_sum + same_category_same_cluster / total_same_category
+  }
+  
+  # Calculate average precision and recall
+  precision <- precision_sum / n
+  recall <- recall_sum / n
+  
+  return(list(precision = precision, recall = recall))
+}
+
+# Calculate BCubed precision and recall
+metrics <- calculate_bcubed_metrics(data)
+
+# Extract precision and recall from the metrics
+precision <- metrics$precision
+recall <- metrics$recall
+
+# Print the results
+cat("BCubed Precision:", precision, "\n")
+cat("BCubed Recall:", recall, "\n")
+
+
+```
+ 
+#  6.2-Evaluation methods for Clustering :
+  The following schedule includes the values of each cluster in: silhouette width, precision, recall, Total within-cluster-sum of square to clarify which cluster is the best to choose. the final decision should align with specific analysis goals and the importance of precision, recall, and cluster characteristics in our context.
+  
++-------------+------------------------------------------------------------------------------+
+| Mining task | Comparison Criteria                                                          |
++=============+==============================================================================+
+| Clustering  | We tried 3 different number of clusters:                                     |
+|             |                                                                              |
+|             | K=3, K=5, K=8                                                                |
+|             |                                                                              |
+|             | +-----------------------------------+------------+------------+------------+ |
+|             | | No. of Clusters                   | 3 (BEST)   | 5          | 8          | |
+|             | +===================================+============+============+============+ |
+|             | | Silhouette width for each cluster | 0.84       | 0. 77      | 0.63       | |
+|             | +-----------------------------------+------------+------------+------------+ |
+|             | | precision                         |0.3896808   | 0.45326    | 0.5133538  | |
+|             | +-----------------------------------+------------+------------+------------+ |
+|             | | recall                            |0.5748308   | 0.4167089  | 0.3178337  | |
+|             | +-----------------------------------+------------+------------+------------+ |
+|             | | Total within-cluster-sum of square| 898.4614   | 137.6409   | 108.4075   | |
+|             | +-----------------------------------+------------+------------+------------+ |
++-------------+------------------------------------------------------------------------------+
+
+ 
+ 
+ 
+ 
+ 
+#7.0-Finding:
+In the beginning, we selected a dataset that represents the restaurants in Zomato platform to predict the rating of new restaurants joining the platform and if people are going to like the restaurant or not to help owners of restaurants to know if it was a good decision to join the platform or not.
+
+To achieve optimal efficiency, accuracy, and correctness in our results, we employed various preprocessing techniques to enhance the effectiveness of the data. We utilized several visualization methods, including boxplots and histograms, to depict the data visually, aiding in comprehension and guiding the application of suitable preprocessing methods. By analyzing these plots and employing relevant commands, we eliminated any null, missing, or outlier values that could negatively impact the outcomes. Additionally, we implemented data transformation, normalizing and discretizing certain attributes to ensure equal weighting and facilitate data management in the context of data mining tasks.
+
+We applied two data mining tasks which are classification and clustering.  
+
+
+#7.1:Classification:
+For the classification we used decision tree method to construct our model,also we’ve applied three attributes selection measures for selecting the best splitting criteria for the decision tree. We have also chosen 3 different sizes of training and testing data to get the best results. For construction and evaluation and we achieved the following results:
+For the information gain:
+60% training data, 30% test data
+76% training data, 25% test data
+80% training data, 20% test data
+
+
+For the gain ratio:
+60% training data, 30% test data
+76% training data, 25% test data
+80% training data, 20% test data
+
+
+For the gain indix :
+60% training data, 30% test data
+76% training data, 25% test data
+80% training data, 20% test data
+
+
+
+
+At the outset, our team carefully selected a dataset that represents valuable information about resturanet. By addressing these goals, we seek to contribute to the optimization of the dining experience on Zomato by exploring critical aspects such as location, cuisine diversity, pricing, and customer ratings. The project's findings aim to empower stakeholders with valuable information for making informed decisions in the competitive food industry. Ultimately, our goal is to unravel the intricacies of restaurant success, offering insights that have the potential to shape strategic decisions and enhance the overall appeal and performance of restaurants on the Zomato platform.
+To ensure accurate and reliable results, we applied various preprocessing techniques to refine the dataset. These techniques helped us enhance the efficiency of the data and prepare it for analysis. Additionally, we employed several plotting methods to visually explore the dataset, allowing us to gain a deeper understanding of its characteristics and determine the most appropriate preprocessing steps.
+Based on our observations from the plots and utilizing other relevant commands, we took steps to address any issues such as missing or outlier values. We removed these problematic instances from the dataset to prevent them from negatively impacting the accuracy of our predictions. Furthermore, we performed data transformation, which involved normalizing and discretizing certain attributes. This process aimed to ensure that all attributes carried equal weight and simplified data handling during subsequent data mining tasks.
+Following the preprocessing stage, we proceeded to apply various methods, including the Gini index, gain ratio, and information gain, using different partitioning techniques. We carefully evaluated the outcomes of each method to determine the most suitable approach for our specific dataset . The results can be viewed in the tables below.
+
+
+
+After thorough analysis, we determined that the gain ratio method with (80% training set and 20% testing set) yielded the most accurate and reliable results for our dataset. Therefore, we confidently selected it as the optimal method for constructing a decision tree.
+
+As mentioned earlier, Gain ratio is deemed more effective than information gain in specific situations because it tackles the potential bias introduced by attributes with high cardinality or a large number of distinct values. Information gain gauges the reduction in uncertainty achieved by splitting data based on an attribute, but it tends to favor attributes with a greater number of distinct values or partitions, thereby introducing more information. This partition generally performs better across all methods because the model has more data to train on, resulting in increased accuracy.
+
+In contrast, gain ratio standardizes the information gain by considering the inherent information of the attribute. It takes into account the number of distinct values an attribute can have, penalizing attributes with high cardinality. By doing so, gain ratio facilitates a more equitable comparison among attributes, taking into consideration both their information gain and the partitions they create.
+#7.2-Clustering:
+
+1-  Choosing the best k means clustering model 
+In our extensive exploration of the ideal number of clusters (K) through the K-means algorithm, considering the importance of Silhouette coefficients ,elbow method, Total Within-Cluster Sum Of Square (WSS), a higher Silhouette indicates better clustering, while the WSS measure cluster compactness, displayed a noticeable decline across scenarios, particularly pronounced with higher values of K, and as shown the ideal number k=3, and we chose also 2 more distinct scenarios (k=5,k=8). 
+
+Considering a balance between cluster quality and interpretability, K=5 appears to be a reasonable choice, exhibiting a good compromise between well-defined clusters (Silhouette Score), balanced precision and recall, and improved compactness (lower WSS), by using the following attributes (“numofratings”,”avgCost”,”online_order”,”tablebooking”).
+
+Here are our results:
+Silhouette Scores:
+•  K = 3: Silhouette score =0.84    
+•  K = 5: Silhouette score = 0.77
+•  K = 8: Silhouette score = 0.63
+
+Total WSS (Within-Cluster Sum of Squares):
+•  K = 3: WSS = 898.4614
+•  K = 5: WSS = 137.6409
+•  K = 8: WSS = 108.4075                                                                                - K=3: High Silhouette Score and moderate precision and recall suggest well-defined and meaningful clusters. However, WSS is relatively high, indicating some room for improved compactness.
+
+- K=5: Moderately high Silhouette Score and moderate precision/recall. Lower WSS compared to K=3, suggesting improved compactness.
+
+- K=8: Moderate Silhouette Score, higher precision, but lower recall. Lower WSS than both K=3 and K=5, indicating improved compactness.
+
+
+
+
+
+
+
+
+
+
+# 8-References(Using IEEE format):
+
+1-A. Dahatonde, "Zomato Restaurants Dataset," Kaggle, 2022. [Online]. Available: https://www.kaggle.com/datasets/abhijitdahatonde/zomato-restaurants-dataset.
+
+2-K. J. Mazidi, "Simple Linear Regression Analysis in R," RPubs, 2017. [Online]. Available: https://rpubs.com/kjmazidi/195428.
+
+3-C. Guild, "Visualizing Data with ggplot2 in R," RPubs, 2022. [Online]. Available: https://rpubs.com/camguild/803096.
+
